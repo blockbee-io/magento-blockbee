@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<default>
+    <payment>
+        <blockbee>
+            <model>Blockbee\Blockbee\Model\Method\BlockbeePayment</model>
+            <title>Cryptocurrency</title>
+            <active>0</active>
+            <show_branding>1</show_branding>
+            <disable_conversion>0</disable_conversion>
+            <qrcode_size>300</qrcode_size>
+            <qrcode_default>1</qrcode_default>
+            <allowspecific>0</allowspecific>
+            <qrcode_setting>without_ammount</qrcode_setting>
+            <color_scheme>auto</color_scheme>
+            <refresh_value_interval>300</refresh_value_interval>
+            <order_cancelation_timeout>3600</order_cancelation_timeout>
+            <add_blockchain_fee>1</add_blockchain_fee>
+            <fee_order_percentage>0.01</fee_order_percentage>
+            <can_use_checkout>1</can_use_checkout>
+        </blockbee>
+    </payment>
+</default>
+</config>

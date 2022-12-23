@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="blockbee_cryptocurrencies" instance="Blockbee\Blockbee\Model\Cache\Type">
+        <label>BlockBee Cryptocurrencies</label>
+        <description>BlockBee Cryptocurrencies Cache</description>
+    </type>
+</config>
