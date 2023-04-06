@@ -15,11 +15,13 @@ require([
 
         var linkUrl = url.build('blockbee/index/cartquote');
 
-        var feeContainer = $('.totals.fee.excl');
+        var feeContainer = $('.blockbee.totals.fee.excl');
+
+        feeContainer.hide();
 
         setInterval(function () {
             if ($('body').attr('aria-busy') === 'false') {
-                if (quote.paymentMethod?._latestValue.method === 'blockbee' && parseFloat($('.totals.fee.excl .price').html().replace(/\D/g, '')) > 0) {
+                if (quote?.paymentMethod?._latestValue.method === 'blockbee' && parseFloat($('.blockbee.totals.fee.excl .price').html().replace(/\D/g, '')) > 0) {
                     feeContainer.show();
                 } else {
                     feeContainer.hide();

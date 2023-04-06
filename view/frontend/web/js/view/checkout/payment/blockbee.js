@@ -1,6 +1,8 @@
 /* @api */
 define([
-    'Magento_Checkout/js/view/payment/default'
+    'Magento_Checkout/js/view/payment/default',
+    'jquery',
+    'domReady!'
 ], function (Component) {
     'use strict';
 
@@ -8,16 +10,15 @@ define([
         defaults: {
             template: 'Blockbee_Blockbee/checkout/payment/blockbee'
         },
-
         getCryptocurrencies: function () {
             return window.checkoutConfig.payment.blockbee.cryptocurrencies;
         },
-
-
         getInstructions: function () {
             return window.checkoutConfig.payment.blockbee.instructions;
         },
-
+        getSelectedCoin() {
+            return document.getElementById("blockbee_payment_cryptocurrency_id")?.value ? document.getElementById("blockbee_payment_cryptocurrency_id").value : '';
+        },
         getData: function () {
             return {
                 "method": 'blockbee',
@@ -25,10 +26,6 @@ define([
                     "blockbee_coin": this.getSelectedCoin()
                 }
             };
-        },
-
-        getSelectedCoin() {
-            return document.getElementById("blockbee_payment_cryptocurrency_id").value;
         }
     });
 });

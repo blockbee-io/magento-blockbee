@@ -1,7 +1,7 @@
 var config = {
     map: {
         '*': {
-            checkoutjs:'Blockbee_Blockbee/js/view/checkout/cart/cart-script',
+            blockbeecheckoutjs:'Blockbee_Blockbee/js/view/checkout/cart/cart-script',
         }
     }
 };

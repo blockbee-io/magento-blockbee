@@ -65,8 +65,6 @@ For more info on our fees [click here](https://blockbee.io/fees/)
 php bin/magento module:enable Blockbee_Blockbee
 php bin/magento setup:upgrade 
 php bin/magento setup:di:compile 
-php bin/magento setup:static-content:deploy -f 
-php bin/magento cache:flush 
 php bin/magento cache:enable blockbee_cryptocurrencies
 ```
 
@@ -113,8 +111,11 @@ The easiest and fastest way is via our live chat on our [website](https://blockb
 
 ### Changelog 
 
-#### 1.0
+#### 1.0.0
 * Initial release.
+
+#### 1.0.1
+* Minor bugfixes and improvements.
 
 ### Upgrade Notice
 * No breaking changes.

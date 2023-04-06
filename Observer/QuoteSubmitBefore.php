@@ -34,8 +34,7 @@ class QuoteSubmitBefore implements ObserverInterface
 
         if ($paymentMethod === 'blockbee') {
             $order =$observer->getOrder();
-            $order->setData('blockbee_fee', (float)$quote->getData('fee'));
+            $order->setData('blockbee_fee', (float)$quote->getData('blockbee_fee'));
         }
-
     }
 }

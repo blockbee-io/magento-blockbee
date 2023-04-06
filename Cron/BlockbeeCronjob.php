@@ -65,7 +65,6 @@ class BlockbeeCronjob
             $qrcode_size = $this->scopeConfig->getValue('payment/blockbee/qrcode_size');
 
             if (!empty($metaData['blockbee_address']) && $value_refresh !== 0 && $metaData['blockbee_cancelled'] !== '1' && (int)$metaData['blockbee_last_price_update'] + $value_refresh <= time() && $remaining_pending > 0) {
-
                 if ($remaining === $remaining_pending) {
                     $blockbee_coin = $metaData['blockbee_currency'];
 

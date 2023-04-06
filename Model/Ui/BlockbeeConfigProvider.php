@@ -10,7 +10,6 @@ use Blockbee\Blockbee\lib\BlockbeeHelper;
 class BlockbeeConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'blockbee';
-
     protected $logger;
 
     public function __construct(
@@ -20,7 +19,7 @@ class BlockbeeConfigProvider implements ConfigProviderInterface
         \Magento\Framework\App\CacheInterface              $cache,
         \Magento\Framework\Serialize\SerializerInterface   $serializer,
         \Blockbee\Blockbee\Model\Method\BlockbeePayment    $payment,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface                           $logger
     )
     {
         $this->escaper = $escaper;
@@ -32,32 +31,31 @@ class BlockbeeConfigProvider implements ConfigProviderInterface
         $this->logger = $logger;
     }
 
-    public function getConfig()
+    public function getConfig(): array
     {
-        $config = [
-            'payment' => array(
-                self::CODE => array(
+        return [
+            'payment' => [
+                self::CODE => [
                     'cryptocurrencies' => $this->getCryptocurrencies(),
                     'instructions' => $this->getInstructions(),
-                )
-            )
+                ]
+            ]
         ];
-        return $config;
     }
 
-    public function getInstructions()
+    public function getInstructions(): \Magento\Framework\Phrase
     {
         return __('Pay with cryptocurrency');
     }
 
-    public function getCryptocurrencies()
+    public function getCryptocurrencies(): array
     {
         $cacheKey = \Blockbee\Blockbee\Model\Cache\Type::TYPE_IDENTIFIER;
         $cacheTag = \Blockbee\Blockbee\Model\Cache\Type::CACHE_TAG;
 
-        if (empty($this->cache->load($cacheKey)) || !json_decode($this->cache->load($cacheKey))) {
+        if (empty($this->cache->load($cacheKey)) || !$this->serializer->unserialize($this->cache->load($cacheKey))) {
             $this->cache->save(
-                $this->serializer->serialize(json_encode(BlockbeeHelper::get_supported_coins())),
+                $this->serializer->serialize($this->serializer->serialize(BlockbeeHelper::get_supported_coins())),
                 $cacheKey,
                 [$cacheTag],
                 86400

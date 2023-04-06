@@ -5,7 +5,7 @@
     <payment>
         <blockbee>
             <model>Blockbee\Blockbee\Model\Method\BlockbeePayment</model>
-            <title>Cryptocurrency</title>
+            <title>Pay With BlockBee</title>
             <active>0</active>
             <show_branding>1</show_branding>
             <disable_conversion>0</disable_conversion>
