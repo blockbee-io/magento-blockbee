@@ -43,6 +43,10 @@ class Callback implements HttpGetActionInterface
 
         $metaData = json_decode($this->helper->getPaymentResponse($orderId), true);
 
+        if ($data['coin'] !== $metaData['blockbee_currency']) {
+            return $this->response->setBody("*ok*");
+        }
+
         if ($this->payment->hasBeenPaid($order) || $data['nonce'] != $metaData['blockbee_nonce']) {
             return $this->response->setBody("*ok*");
         }
@@ -98,9 +102,9 @@ class Callback implements HttpGetActionInterface
         }
 
         if ($remaining_pending <= $min_tx) {
-            $this->helper->updatePaymentData($orderId, 'blockbee_qr_code_value', BlockbeeHelper::get_static_qrcode($metaData['blockbee_address'], $metaData['blockbee_currency'], $min_tx,$this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE), $this->scopeConfig->getValue('payment/blockbee/qrcode_size', \Magento\Store\Model\ScopeInterface::SCOPE_STORE))['qr_code']);
+            $this->helper->updatePaymentData($orderId, 'blockbee_qr_code_value', BlockbeeHelper::get_static_qrcode($metaData['blockbee_address'], $metaData['blockbee_currency'], $min_tx, $this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE), $this->scopeConfig->getValue('payment/blockbee/qrcode_size', \Magento\Store\Model\ScopeInterface::SCOPE_STORE))['qr_code']);
         } else {
-            $this->helper->updatePaymentData($orderId, 'blockbee_qr_code_value', BlockbeeHelper::get_static_qrcode($metaData['blockbee_address'], $metaData['blockbee_currency'], $remaining_pending,$this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE), $this->scopeConfig->getValue('payment/blockbee/qrcode_size', \Magento\Store\Model\ScopeInterface::SCOPE_STORE))['qr_code']);
+            $this->helper->updatePaymentData($orderId, 'blockbee_qr_code_value', BlockbeeHelper::get_static_qrcode($metaData['blockbee_address'], $metaData['blockbee_currency'], $remaining_pending, $this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE), $this->scopeConfig->getValue('payment/blockbee/qrcode_size', \Magento\Store\Model\ScopeInterface::SCOPE_STORE))['qr_code']);
         }
 
         return $this->response->setBody("*ok*");

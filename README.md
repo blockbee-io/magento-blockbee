@@ -24,7 +24,7 @@ The BlockBee extension enables your Magento store to get receive payments in cry
 * (ETH) Ethereum
 * (BCH) Bitcoin Cash
 * (LTC) Litecoin
-* (XMR) Monero
+* (MATIC) Polygon
 * (TRX) Tron
 * (BNB) Binance Coin
 * (USDT) USDT
@@ -97,7 +97,7 @@ This depends on the cryptocurrency you're using. Bitcoin usually takes up to 11 
 
 #### Is there a minimum for a payment?
 
-Yes, the minimums change according to the chosen cryptocurrency and can be checked [here](https://blockbee.io/get_started/#fees).
+Yes, the minimums change according to the chosen cryptocurrency and can be checked [here](https://blockbee.io/fees).
 If the Magento order total is below the chosen cryptocurrency's minimum, an error is raised to the user.
 
 #### Where can I find more documentation on your service?
@@ -115,6 +115,9 @@ The easiest and fastest way is via our live chat on our [website](https://blockb
 * Initial release.
 
 #### 1.0.1
+* Minor bugfixes and improvements.
+
+#### 1.0.2
 * Minor bugfixes and improvements.
 
 ### Upgrade Notice
