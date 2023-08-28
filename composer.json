@@ -2,7 +2,7 @@
     "name": "blockbee/blockbee",
     "description": "BlockBee's Magento extension",
     "type": "magento2-module",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "keywords": [
         "blockbee",
         "magento2_module",

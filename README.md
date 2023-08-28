@@ -12,7 +12,7 @@ Magento >= 2.3.5
 
 ### Description
 
-Accept payments in Bitcoin, Bitcoin Cash, Litecoin, Ethereum, Monero and IOTA directly to your crypto wallet.
+Accept payments in Bitcoin, Bitcoin Cash, Litecoin, Ethereum, USDT and Matic directly to your crypto wallet.
 
 #### Allow users to pay with crypto directly on your store
 
@@ -37,15 +37,33 @@ Exchange rates are fetched every 5 minutes.
 * (USD) United States Dollar
 * (EUR) Euro
 * (GBP) Great Britain Pound
-* (JPY) Japanese Yen
-* (CNY) Chinese Yuan
-* (INR) Indian Rupee
 * (CAD) Canadian Dollar
+* (JPY) Japanese Yen
+* (AED) UAE Dollar
+* (MYR) Malaysian Ringgit
+* (IDR) Indonesian Rupiah
+* (THB) Thai Baht
+* (CHF) Swiss Franc
+* (COP) Colombian Peso
+* (SGD) Singapore Dollar
+* (RUB) Russian Ruble
+* (ZAR) South African Rand
+* (TRY) Turkish Lira
+* (LKR) Sri Lankan Rupee
+* (XAF) CFA Franc
+* (RON) Romanian Leu
+* (BGN) Bulgarian Lev
+* (HUF) Hungarian Forint
+* (CZK) Czech Koruna
+* (PHP) Philippine Peso
+* (PLN) Poland Zloti
+* (UGX) Uganda Shillings
+* (MXN) Mexican Peso
+* (INR) Indian Rupee
 * (HKD) Hong Kong Dollar
+* (CNY) Chinese Yuan
 * (BRL) Brazilian Real
 * (DKK) Danish Krone
-* (MXN) Mexican Peso
-* (AED) United Arab Emirates Dirham
 
 If your Magento's currency is none of the above, the exchange rates will default to USD.
 If you're using Magento in a different currency not listed here and need support, please [contact us](https://blockbee.io/contacts/) via our live chat.
@@ -119,6 +137,9 @@ The easiest and fastest way is via our live chat on our [website](https://blockb
 
 #### 1.0.2
 * Minor bugfixes and improvements.
+
+#### 1.0.3
+* Add new choices for order cancellation.
 
 ### Upgrade Notice
 * No breaking changes.
