@@ -2,7 +2,6 @@
 
 namespace Blockbee\Blockbee\Model\Total;
 
-use Blockbee\Blockbee\lib\BlockbeeHelper;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\Quote\Address\Total\AbstractTotal;
 use Magento\Quote\Model\Quote;
@@ -12,23 +11,32 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class Fee extends AbstractTotal
 {
     /**
-     * Collect grand total address amount
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
+     * @var \Magento\Quote\Model\Quote\Address\Total
+     */
+    protected $totals;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * Optional: Validator property if you plan to use it
      *
-     * @param Quote $quote
-     * @param ShippingAssignmentInterface $shippingAssignment
-     * @param Total $total
-     * @return $this
+     * @var mixed|null
      */
     protected $quoteValidator = null;
 
     public function __construct(
-        \Magento\Checkout\Model\Session          $checkoutSession,
         ScopeConfigInterface                     $scopeConfig,
         \Magento\Quote\Model\Quote\Address\Total $orderTotals,
         \Psr\Log\LoggerInterface                 $logger
-    )
-    {
-        $this->checkoutSession = $checkoutSession;
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->totals = $orderTotals;
         $this->logger = $logger;
@@ -38,8 +46,7 @@ class Fee extends AbstractTotal
         Quote                       $quote,
         ShippingAssignmentInterface $shippingAssignment,
         Total                       $total
-    )
-    {
+    ) {
         parent::collect($quote, $shippingAssignment, $total);
 
         if (!count($shippingAssignment->getItems())) {
@@ -77,7 +84,7 @@ class Fee extends AbstractTotal
     public function fetch(Quote $quote, Total $total)
     {
         return [
-            'code' => 'blockbee_fee',
+            'code'  => 'blockbee_fee',
             'title' => __('Service Fee'),
             'value' => $this->calculateFee($quote),
         ];
@@ -85,7 +92,6 @@ class Fee extends AbstractTotal
 
     private function calculateFee(Quote $quote)
     {
-
         try {
             $paymentMethod = $quote->getPayment()->getMethodInstance()->getCode();
 
@@ -93,17 +99,13 @@ class Fee extends AbstractTotal
                 $conv = 0;
                 $totalPrice = 0;
 
-                $feePercentage = $this->scopeConfig->getValue('payment/blockbee/fee_order_percentage', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                $estimateBlockchain = $this->scopeConfig->getValue('payment/blockbee/add_blockchain_fee', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-                $coin = $this->checkoutSession->getCurrency();
-                $api_key = $this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+                $feePercentage = $this->scopeConfig->getValue(
+                    'payment/blockbee/fee_order_percentage',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+                );
 
                 if ($feePercentage !== 'none') {
                     $totalPrice = $quote->getGrandTotal() * $feePercentage;
-                }
-
-                if (!empty($coin) && $estimateBlockchain) {
-                    $conv = BlockbeeHelper::get_estimate($coin,$api_key)->{$quote->getQuoteCurrencyCode()};
                 }
 
                 return $totalPrice + $conv;

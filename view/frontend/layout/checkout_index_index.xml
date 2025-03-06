@@ -26,13 +26,6 @@
                                                                 </item>
                                                             </item>
                                                         </item>
-                                                        <item name="additional-payment-validators" xsi:type="array">
-                                                            <item name="children" xsi:type="array">
-                                                                <item name="blockbee-validation" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Blockbee_Blockbee/js/view/blockbee-validation</item>
-                                                                </item>
-                                                            </item>
-                                                        </item>
                                                     </item>
                                                 </item>
                                             </item>
@@ -76,8 +69,5 @@
                 </argument>
             </arguments>
         </referenceBlock>
-        <referenceContainer name="before.body.end">
-            <block class="Blockbee\Blockbee\Block\Payment" name="blockbee_script" template="Blockbee_Blockbee::script.phtml"/>
-        </referenceContainer>
     </body>
 </page>

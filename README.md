@@ -28,6 +28,7 @@ The BlockBee extension enables your Magento store to get receive payments in cry
 * (TRX) Tron
 * (BNB) Binance Coin
 * (USDT) USDT
+* (SOL) Solana
 
 BlockBee plugin will attempt to automatically convert the value you set on your store to the cryptocurrency your customer chose.
 Exchange rates are fetched every 5 minutes.
@@ -83,7 +84,6 @@ For more info on our fees [click here](https://blockbee.io/fees/)
 php bin/magento module:enable Blockbee_Blockbee
 php bin/magento setup:upgrade 
 php bin/magento setup:di:compile 
-php bin/magento cache:enable blockbee_cryptocurrencies
 ```
 
 4. Enable and configure BlockBee in Magento Admin under Stores -> Configuration-> Sales -> Payment Methods -> BlockBee
@@ -140,6 +140,10 @@ The easiest and fastest way is via our live chat on our [website](https://blockb
 
 #### 1.0.3
 * Add new choices for order cancellation.
+
+#### 1.1.0
+* Add new choices for order cancellation.
+* The extension now uses BlockBee Checkout
 
 ### Upgrade Notice
 * No breaking changes.

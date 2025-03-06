@@ -8,10 +8,7 @@ class CancellationList implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             '0' => 'Never',
-            '900' => '15 Minutes',
-            '1800' => '30 Minutes',
-            '2700' => '45 Minutes',
-            '3600' => '1 Hour',
+            '3630' => '1 Hour',
             '21600' => '6 Hours',
             '43200' => '12 Hours',
             '64800' => '18 Hours',

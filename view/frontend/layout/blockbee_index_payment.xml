@@ -5,7 +5,6 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Blockbee\Blockbee\Block\Payment" name="blockbee" template="Blockbee_Blockbee::payment.phtml"/>
         </referenceContainer>
     </body>
 </page>

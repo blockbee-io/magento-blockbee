@@ -4,7 +4,6 @@ namespace Blockbee\Blockbee\Model\Method;
 
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Framework\DataObject;
-use Blockbee\Blockbee\lib\BlockbeeHelper;
 use Magento\Payment\Model\Method\AbstractMethod;
 
 class BlockbeePayment extends AbstractMethod
@@ -14,6 +13,7 @@ class BlockbeePayment extends AbstractMethod
     protected $orderFactory;
     protected $orderSession;
     protected $blockbeeHelper;
+    protected $blockbeeLib;
     protected $urlBuilder;
 
     public function __construct(
@@ -88,54 +88,46 @@ class BlockbeePayment extends AbstractMethod
     {
         $quote = $this->getQuote();
 
-        $paymentInfo = $this->getInfoInstance();
-
-        $selected = $paymentInfo->getAdditionalInformation('blockbee_coin');
-
-        if (empty($selected)) {
-            return $this;
-        }
-
-        $apiKey = $this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-
         $nonce = $this->generateNonce();
-        $info = BlockbeeHelper::get_info($selected, false, $apiKey);
-
-        $minTx = floatval($info->minimum_transaction_coin);
 
         $currencyCode = $quote->getQuoteCurrencyCode();
 
         $total = $quote->getGrandTotal();
 
-        $cryptoTotal = BlockbeeHelper::get_conversion(
-            $currencyCode,
-            $selected,
-            $total,
-            $this->scopeConfig->getValue('payment/blockbee/disable_conversion', \Magento\Store\Model\ScopeInterface::SCOPE_STORE),
-            $apiKey
-        );
+        # Config
+        $apiKey = $this->getConfigValue('api_key');
+        $expireAt = (int)$this->getConfigValue('order_cancelation_timeout');
 
-        if ($cryptoTotal < $minTx) {
-            $message = 'Payment error: Value too low, minimum is';
-            $message .= ' ' . $minTx . ' ' . strtoupper($selected);
-            throw new \Magento\Framework\Exception\LocalizedException(
-                __($message)
-            );
+        $bbParams = [
+            'currency' => $currencyCode,
+            'item_description' => '#' . $quote->getId()
+        ];
+
+        if ($expireAt > 0) {
+            $bbParams['expire_at'] = time() + $expireAt;
         }
+
+        $api = new \Blockbee\Blockbee\lib\BlockbeeHelper($apiKey, [
+            'order_id' => $quote->getId(),
+            'nonce' => $nonce,
+        ], $bbParams);
+
+        $callbackUrl = $this->getCallbackUrl();
+
+        $requestPayment = $api->payment_request(
+            $this->storeManager->getStore()->getUrl(),
+            $callbackUrl,
+            $total
+        );
 
         $paymentData = [
             'blockbee_nonce' => $nonce,
-            'blockbee_address' => '',
-            'blockbee_total' => $cryptoTotal,
+            'blockbee_success_token' => $requestPayment->success_token,
+            'blockbee_payment_id' => $requestPayment->payment_id,
             'blockbee_total_fiat' => $total,
-            'blockbee_currency' => $selected,
+            'blockbee_fiat' => $currencyCode,
             'blockbee_history' => json_encode([]),
-            'blockbee_cancelled' => '0',
-            'blockbee_last_price_update' => time(),
-            'blockbee_min' => $minTx,
-            'blockbee_qr_code_value' => '',
-            'blockbee_qr_code' => '',
-            'blockbee_payment_url' => ''
+            'blockbee_payment_url' => $requestPayment->payment_url
         ];
 
         $paymentData = json_encode($paymentData);
@@ -165,11 +157,6 @@ class BlockbeePayment extends AbstractMethod
         return $this->urlBuilder->getUrl('blockbee/index/callback', $params);
     }
 
-    public function getAjaxStatusUrl($params = [])
-    {
-        return $this->urlBuilder->getUrl('blockbee/index/status', $params);
-    }
-
     public function hasBeenPaid($order)
     {
         if ($order->getTotalPaid() > 0) {
@@ -179,35 +166,17 @@ class BlockbeePayment extends AbstractMethod
         }
     }
 
-    public static function calcOrder($history, $meta)
+    public function getOrderPlaceRedirectUrl()
     {
-        $already_paid = 0;
-        $already_paid_fiat = 0;
-        $remaining = $meta['blockbee_total'];
-        $remaining_pending = $meta['blockbee_total'];
-        $remaining_fiat = $meta['blockbee_total_fiat'];
+        $quote = $this->getQuote();
 
-        if (!empty($history)) {
-            foreach ($history as $uuid => $item) {
-                if ((int)$item['pending'] === 0) {
-                    $remaining = bcsub(BlockbeeHelper::sig_fig($remaining, 6), $item['value_paid'], 8);
-                }
+        $paymentData = json_decode($this->blockbeeHelper->getPaymentResponse($quote->getId()), true);
 
-                $remaining_pending = bcsub(BlockbeeHelper::sig_fig($remaining_pending, 6), $item['value_paid'], 8);
-                $remaining_fiat = bcsub(BlockbeeHelper::sig_fig($remaining_fiat, 6), $item['value_paid_fiat'], 8);
-
-                $already_paid = bcadd(BlockbeeHelper::sig_fig($already_paid, 6), $item['value_paid'], 8);
-                $already_paid_fiat = bcadd(BlockbeeHelper::sig_fig($already_paid_fiat, 6), $item['value_paid_fiat'], 8);
-            }
+        if (!empty($paymentData['blockbee_payment_url'])) {
+            return $paymentData['blockbee_payment_url'];
         }
 
-        return [
-            'already_paid' => floatval($already_paid),
-            'already_paid_fiat' => floatval($already_paid_fiat),
-            'remaining' => floatval($remaining),
-            'remaining_pending' => floatval($remaining_pending),
-            'remaining_fiat' => floatval($remaining_fiat)
-        ];
+        return '';
     }
 
     public function generateNonce($len = 32)

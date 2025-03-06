@@ -3,26 +3,56 @@
 namespace Blockbee\Blockbee\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Framework\Escaper;
 use Magento\Payment\Helper\Data as PaymentHelper;
-use Blockbee\Blockbee\lib\BlockbeeHelper;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Serialize\SerializerInterface;
+use Blockbee\Blockbee\Model\Method\BlockbeePayment;
+use Psr\Log\LoggerInterface;
+use Magento\Framework\Phrase;
 
 class BlockbeeConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'blockbee';
+
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
+     * @var PaymentHelper
+     */
+    protected $paymentHelper;
+
+    /**
+     * @var CacheInterface
+     */
+    protected $cache;
+
+    /**
+     * @var SerializerInterface
+     */
+    protected $serializer;
+
+    /**
+     * @var BlockbeePayment
+     */
+    protected $payment;
+
+    /**
+     * @var LoggerInterface
+     */
     protected $logger;
 
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        PaymentHelper                                      $paymentHelper,
-        Escaper                                            $escaper,
-        \Magento\Framework\App\CacheInterface              $cache,
-        \Magento\Framework\Serialize\SerializerInterface   $serializer,
-        \Blockbee\Blockbee\Model\Method\BlockbeePayment    $payment,
-        \Psr\Log\LoggerInterface                           $logger
-    )
-    {
-        $this->escaper = $escaper;
+        ScopeConfigInterface $scopeConfig,
+        PaymentHelper $paymentHelper,
+        CacheInterface $cache,
+        SerializerInterface $serializer,
+        BlockbeePayment $payment,
+        LoggerInterface $logger
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->paymentHelper = $paymentHelper;
         $this->cache = $cache;
@@ -36,53 +66,14 @@ class BlockbeeConfigProvider implements ConfigProviderInterface
         return [
             'payment' => [
                 self::CODE => [
-                    'cryptocurrencies' => $this->getCryptocurrencies(),
                     'instructions' => $this->getInstructions(),
                 ]
             ]
         ];
     }
 
-    public function getInstructions(): \Magento\Framework\Phrase
+    public function getInstructions(): Phrase
     {
         return __('Pay with cryptocurrency');
-    }
-
-    public function getCryptocurrencies(): array
-    {
-        $cacheKey = \Blockbee\Blockbee\Model\Cache\Type::TYPE_IDENTIFIER;
-        $cacheTag = \Blockbee\Blockbee\Model\Cache\Type::CACHE_TAG;
-
-        if (empty($this->cache->load($cacheKey)) || !$this->serializer->unserialize($this->cache->load($cacheKey))) {
-            $this->cache->save(
-                $this->serializer->serialize($this->serializer->serialize(BlockbeeHelper::get_supported_coins())),
-                $cacheKey,
-                [$cacheTag],
-                86400
-            );
-        }
-
-        $selected = explode(',', $this->scopeConfig->getValue('payment/blockbee/cryptocurrencies', \Magento\Store\Model\ScopeInterface::SCOPE_STORE));
-
-        $apiKey = $this->scopeConfig->getValue('payment/blockbee/api_key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-
-        $available_cryptos = json_decode($this->serializer->unserialize($this->cache->load($cacheKey)));
-
-        $output = [];
-
-        if (!empty($selected) && !empty($apiKey)) { // Check for API Key / Address configuration. Prevents unexpected errors.
-            foreach ($available_cryptos as $ticker => $coin) {
-                foreach ($selected as $uuid => $data) {
-                    if ($ticker === $data) {
-                        $output[] = [
-                            'value' => $data,
-                            'type' => $coin,
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $output;
     }
 }

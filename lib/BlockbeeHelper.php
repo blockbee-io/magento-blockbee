@@ -2,279 +2,52 @@
 
 namespace Blockbee\Blockbee\lib;
 
+use Exception;
+
 class BlockbeeHelper
 {
     private static $base_url = "https://api.blockbee.io";
-    private $payment_address = null;
-    private $callback_url = null;
-    private $coin = null;
-    private $pending = false;
+    private $bb_params = [];
     private $parameters = [];
     private $api_key = null;
 
-    public function __construct($coin, $api_key, $callback_url, $parameters = [], $pending = false)
+    public function __construct($api_key, $parameters = [], $bb_params = [])
     {
+        if (empty($api_key)) {
+            throw new Exception('API Key is Empty');
+        }
 
-        $this->callback_url = $callback_url;
-        $this->api_key = $api_key;
-        $this->coin = $coin;
-        $this->pending = $pending ? 1 : 0;
+        $this->bb_params = $bb_params;
         $this->parameters = $parameters;
+        $this->api_key = $api_key;
     }
 
-    public function get_address()
+    /**
+     * Handles request to payments.
+     * @return array
+     */
+    public function payment_request($redirect_url, $notify_url, $value)
     {
-
-        if (empty($this->coin) || empty($this->callback_url)) {
+        if (empty($redirect_url) || empty($value)) {
             return null;
         }
-
-        $api_key = $this->api_key;
-
-        if (empty($api_key)) {
-             return null;
-        }
-
-        if (empty($api_key)) {
-                return null;
-            }
-
-        $callback_url = $this->callback_url;
 
         if (!empty($this->parameters)) {
             $req_parameters = http_build_query($this->parameters);
-            $callback_url = "{$this->callback_url}?{$req_parameters}";
+            $redirect_url   = "{$redirect_url}?{$req_parameters}";
+            $notify_url   = "{$notify_url}?{$req_parameters}";
         }
 
-        $bb_params = [
-            'apikey' => $api_key,
-            'callback' => $callback_url,
-            'pending' => $this->pending,
-            'convert' => 1,
-        ];
+        $bb_params = array_merge([
+            'redirect_url' => $redirect_url,
+            'notify_url' => $notify_url,
+            'apikey' => $this->api_key,
+            'value' => $value
+        ], $this->bb_params);
 
-        $response = BlockbeeHelper::_request($this->coin, 'create', $bb_params);
-
-        if ($response->status == 'success') {
-            $this->payment_address = $response->address_in;
-
-            return $response->address_in;
-        }
-
-        return null;
+        return BlockbeeHelper::_request(null, 'checkout/request', $bb_params);
     }
 
-    public function checklogs()
-    {
-
-        if (empty($this->coin) || empty($this->callback_url)) return null;
-
-        $params = [
-            'callback' => $this->callback_url,
-            'apikey' => $this->api_key
-        ];
-
-        $response = BlockbeeHelper::_request($this->coin, 'logs', $params);
-
-        if ($response->status == 'success') {
-            return $response;
-        }
-
-        return null;
-    }
-
-    public function get_qrcode($value, $size)
-    {
-        if (empty($this->coin)) return null;
-
-        if (empty($value)) {
-            $params = [
-                'address' => $this->payment_address,
-                'size' => $size,
-                'apikey' => $this->api_key,
-            ];
-        } else {
-            $params = [
-                'address' => $this->payment_address,
-                'value' => $value,
-                'size' => $size,
-                'apikey' => $this->api_key,
-            ];
-        }
-
-        $response = BlockbeeHelper::_request($this->coin, 'qrcode', $params);
-
-        if ($response->status == 'success') {
-            return ['qr_code' => $response->qr_code, 'uri' => $response->payment_uri];
-        }
-
-        return null;
-    }
-
-    public static function get_static_qrcode($address, $coin, $value, $api_key, $size = 300)
-    {
-        if (empty($address)) {
-            return null;
-        }
-
-        if (!empty($value)) {
-            $params = [
-                'address' => $address,
-                'value' => $value,
-                'size' => $size,
-                'apikey' => $api_key,
-            ];
-        } else {
-            $params = [
-                'address' => $address,
-                'size' => $size,
-                'apikey' => $api_key,
-            ];
-        }
-
-        $response = BlockbeeHelper::_request($coin, 'qrcode', $params);
-
-        if ($response->status == 'success') {
-            return ['qr_code' => $response->qr_code, 'uri' => $response->payment_uri];
-        }
-
-        return null;
-    }
-
-    public static function get_supported_coins()
-    {
-        $info = BlockbeeHelper::get_info(null, true, null);
-
-        if (empty($info)) {
-            return null;
-        }
-
-        unset($info['fee_tiers']);
-
-        $coins = [];
-
-        foreach ($info as $chain => $data) {
-            $is_base_coin = in_array('ticker', array_keys($data));
-            if ($is_base_coin) {
-                $coins[$chain] = $data['coin'];
-                continue;
-            }
-
-            $base_ticker = "{$chain}_";
-            foreach ($data as $token => $subdata) {
-                $chain_upper = strtoupper($chain);
-
-                $coins[$base_ticker . $token] = "{$subdata['coin']} ({$chain_upper})";
-            }
-        }
-
-        return $coins;
-    }
-
-    public static function get_info($coin = null, $assoc = false, $api_key = null)
-    {
-        $params = [];
-
-        if (!empty($api_key)) {
-            $params['apikey'] = $api_key;
-        }
-
-        if (empty($coin)) {
-            $params['prices'] = '0';
-        }
-
-        $response = BlockbeeHelper::_request($coin, 'info', $params, $assoc);
-
-        if (empty($coin) || $response->status == 'success') {
-            return $response;
-        }
-
-        return null;
-    }
-
-    public static function process_callback($_get)
-    {
-        $params = [
-            'address_in' => $_get['address_in'],
-            'address_out' => $_get['address_out'],
-            'txid_in' => $_get['txid_in'],
-            'txid_out' => isset($_get['txid_out']) ? $_get['txid_out'] : null,
-            'confirmations' => $_get['confirmations'],
-            'value' => $_get['value'],
-            'value_coin' => $_get['value_coin'],
-            'value_forwarded' => isset($_get['value_forwarded']) ? $_get['value_forwarded'] : null,
-            'value_forwarded_coin' => isset($_get['value_forwarded_coin']) ? $_get['value_forwarded_coin'] : null,
-            'coin' => $_get['coin'],
-            'pending' => isset($_get['pending']) ? $_get['pending'] : false,
-        ];
-
-        foreach ($_get as $k => $v) {
-            if (isset($params[$k])) continue;
-            $params[$k] = $_get[$k];
-        }
-
-        foreach ($params as &$val) {
-            $val = is_string($val) ? trim($val) : null;
-        }
-
-        return $params;
-    }
-
-    public static function get_conversion($from, $to, $value, $disable_conversion, $api_key)
-    {
-
-        if ($disable_conversion) {
-            return $value;
-        }
-
-        $params = [
-            'from' => $from,
-            'to' => $to,
-            'value' => $value,
-            'apikey' => $api_key
-        ];
-
-        $response = BlockbeeHelper::_request('', 'convert', $params);
-
-        if ($response->status == 'success') {
-            return $response->value_coin;
-        }
-
-        return null;
-    }
-
-    public static function get_estimate($coin, $api_key)
-    {
-
-        $params = [
-            'addresses' => 1,
-            'priority' => 'default',
-            'apikey' => $api_key,
-        ];
-
-        $response = BlockbeeHelper::_request($coin, 'estimate', $params);
-
-        if ($response->status == 'success') {
-
-            return $response->estimated_cost_currency;
-        }
-
-        return null;
-    }
-
-    public static function sig_fig($value, $digits)
-    {
-        $value = (string) $value;
-        if (strpos($value, '.') !== false) {
-            if ($value[0] != '-') {
-                return bcadd($value, '0.' . str_repeat('0', $digits) . '5', $digits);
-            }
-
-            return bcsub($value, '0.' . str_repeat('0', $digits) . '5', $digits);
-        }
-
-        return $value;
-    }
 
     private static function _request($coin, $endpoint, $params = [], $assoc = false)
     {
